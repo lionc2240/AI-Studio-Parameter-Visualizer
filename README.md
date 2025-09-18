@@ -2,12 +2,11 @@
 
 This project is an interactive web application designed to help users understand the effects of two key parameters in AI language models: **Temperature** and **Top-P (Nucleus Sampling)**. By adjusting these parameters and generating text, users can visually see how the probability distribution of the next word changes, providing an intuitive grasp of these fundamental concepts.
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/YOUR_NETLIFY_BADGE_ID/deploy-status)](https://app.netlify.com/sites/YOUR_NETLIFY_SITE_NAME/deploys)
+[![Netlify Status](https://app.netlify.com/projects/aiparameter/deploys/68cb79534209770008371b3f)
 
-**[➡️ View Live Demo](https://your-netlify-site-name.netlify.app/)** 👈 *(Replace with your actual Netlify link after deployment)*
+**[➡️ View Live Demo](https://aiparameter.netlify.app/)**
 
 ![Screenshot of the AI Parameter Visualizer](./screenshot.png)
-*(It's recommended to add a screenshot of your application and name it `screenshot.png`)*
 
 ## Features
 
@@ -57,11 +56,11 @@ Since this is a static web application with no backend or build process, you can
 
 1.  Clone this repository:
     ```bash
-    git clone https://github.com/your-username/your-repo-name.git
+    git clone https://github.com/lionc2240/AI-Studio-Parameter-Visualizer.git
     ```
 2.  Navigate to the project directory:
     ```bash
-    cd your-repo-name
+    cd AI-Studio-Parameter-Visualizer
     ```
 3.  Open the `index.html` file directly in your web browser (e.g., Chrome, Firefox, Safari).
 
