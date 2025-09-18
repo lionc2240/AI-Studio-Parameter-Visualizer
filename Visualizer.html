@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trực quan hóa Temperature & Top-P</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .slider-thumb::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .bar-candidate { fill: #0ea5e9; } /* cyan-500 */
+        .bar-default { fill: #60a5fa; } /* blue-400 */
+        .bar-eliminated { fill: #475569; opacity: 0.5; } /* slate-600 */
+        .bar-selected { fill: #22c55e; } /* green-500 */
+        .chart-text {
+            font-size: 12px;
+            fill: #e2e8f0; /* slate-200 */
+        }
+        .domain, .tick line {
+           stroke: #475569; /* slate-600 */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-slate-200 antialiased">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-400">Trực quan hóa Tham số AI</h1>
+            <p class="mt-2 text-slate-400">Khám phá cách <span class="font-semibold text-blue-300">Temperature</span> và <span class="font-semibold text-green-300">Top-P</span> định hình câu trả lời của AI.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Cột điều khiển và giải thích -->
+            <div class="lg:col-span-1 flex flex-col gap-8">
+                <!-- Bảng điều khiển -->
+                <div class="bg-gray-800 p-6 rounded-2xl shadow-lg border border-slate-700">
+                    <h2 class="text-2xl font-semibold mb-6 text-slate-100 border-b border-slate-600 pb-3">Bảng điều khiển</h2>
+
+                    <!-- Temperature Slider -->
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="temperature" class="font-medium text-blue-300">Temperature</label>
+                            <span id="temperatureValue" class="text-lg font-mono bg-blue-900/50 text-blue-200 px-3 py-1 rounded-md">1.0</span>
+                        </div>
+                        <input type="range" id="temperature" min="0.01" max="2.0" step="0.01" value="1.0" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                        <div class="flex justify-between text-xs text-slate-400 mt-1">
+                            <span>Ngẫu nhiên thấp</span>
+                            <span>Ngẫu nhiên cao</span>
+                        </div>
+                    </div>
+
+                    <!-- Top-P Slider -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="topP" class="font-medium text-green-300">Top-P</label>
+                            <span id="topPValue" class="text-lg font-mono bg-green-900/50 text-green-200 px-3 py-1 rounded-md">0.95</span>
+                        </div>
+                        <input type="range" id="topP" min="0.01" max="1.0" step="0.01" value="0.95" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                        <div class="flex justify-between text-xs text-slate-400 mt-1">
+                            <span>Lựa chọn chặt</span>
+                            <span>Lựa chọn rộng</span>
+                        </div>
+                    </div>
+
+                    <!-- Prompt Input -->
+                    <div class="mt-8">
+                        <label for="promptInput" class="block font-medium mb-2 text-slate-300">Nhập câu lệnh của bạn</label>
+                         <div class="flex gap-2">
+                            <input type="text" id="promptInput" value="Hôm nay tôi" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                            <button id="generateBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+                                Tạo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Giải thích -->
+                <div class="bg-gray-800 p-6 rounded-2xl shadow-lg border border-slate-700">
+                    <h3 class="text-xl font-semibold mb-4 text-slate-100">Cách hoạt động</h3>
+                    <p class="text-slate-400 mb-4"><strong class="text-blue-300">Temperature</strong> điều chỉnh sự "sáng tạo" của mô hình. Giá trị thấp làm cho các từ có xác suất cao được ưu tiên tuyệt đối (kết quả dễ đoán). Giá trị cao làm phẳng sự phân bổ xác suất, cho phép các từ hiếm hơn có cơ hội được chọn (kết quả ngẫu nhiên hơn).</p>
+                    <p class="text-slate-400"><strong class="text-green-300">Top-P</strong> (Nucleus Sampling) lọc ra các từ có xác suất thấp. Mô hình chỉ xem xét nhóm từ nhỏ nhất có tổng xác suất tích lũy lớn hơn giá trị Top-P. Điều này giúp loại bỏ các lựa chọn không liên quan, đặc biệt khi Temperature cao.</p>
+                </div>
+            </div>
+
+            <!-- Cột trực quan hóa -->
+            <div class="lg:col-span-2 bg-gray-800 p-4 md:p-6 rounded-2xl shadow-lg border border-slate-700 min-h-[400px]">
+                <h2 class="text-2xl font-semibold mb-2 text-slate-100">Phân bổ xác suất từ tiếp theo</h2>
+                <div id="status" class="h-8 text-slate-400 mb-2">Nhấn "Tạo" để bắt đầu.</div>
+                <div id="chart" class="w-full h-[500px] overflow-x-auto"></div>
+                <div class="mt-4 p-4 bg-slate-900/50 rounded-lg text-center">
+                    <h3 class="text-lg text-slate-300">Câu được tạo ra:</h3>
+                    <p id="generatedText" class="text-xl font-semibold text-blue-300 min-h-[28px] mt-2"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA MÔ PHỎNG ---
+        // Một danh sách từ vựng nhỏ để mô phỏng
+        const vocabulary = [
+            'là', 'một', 'học sinh', 'giáo viên', 'bác sĩ', 'kỹ sư',
+            'đi', 'chơi', 'học', 'làm', 'ăn', 'ngủ', 'xem', 'phim',
+            'rất', 'vui', 'buồn', 'hạnh phúc', 'lo lắng', 'mệt mỏi',
+            'đến', 'trường', 'công ty', 'nhà', 'bệnh viện', 'công viên',
+            'và', 'nhưng', 'tuy nhiên', 'vì vậy', 'để', 'có thể',
+            'hôm nay', 'ngày mai', 'thời tiết', 'khá', 'đẹp', 'nắng'
+        ];
+        // Xác suất cơ bản (log probabilities) cho mỗi từ, mô phỏng đầu ra của một mô hình
+        // Các từ phổ biến hơn sẽ có giá trị cao hơn
+        const baseLogProbs = vocabulary.map(() => -Math.random() * 5 - 1);
+        // Tăng xác suất cho một vài từ hợp lý sau "Hôm nay tôi"
+        baseLogProbs[vocabulary.indexOf('đi')] = -0.5;
+        baseLogProbs[vocabulary.indexOf('học')] = -0.8;
+        baseLogProbs[vocabulary.indexOf('làm')] = -1.0;
+        baseLogProbs[vocabulary.indexOf('rất')] = -1.2;
+        baseLogProbs[vocabulary.indexOf('là')] = -1.5;
+
+        // --- DOM ELEMENTS ---
+        const tempSlider = document.getElementById('temperature');
+        const topPSlider = document.getElementById('topP');
+        const tempValue = document.getElementById('temperatureValue');
+        const topPValue = document.getElementById('topPValue');
+        const generateBtn = document.getElementById('generateBtn');
+        const promptInput = document.getElementById('promptInput');
+        const generatedText = document.getElementById('generatedText');
+        const statusEl = document.getElementById('status');
+        
+        let currentDistribution = [];
+        let simulationRunning = false;
+        
+        // --- LOGIC TÍNH TOÁN ---
+        
+        // Áp dụng Temperature vào log probabilities
+        function applyTemperature(logProbs, temperature) {
+            if (temperature <= 0) temperature = 0.01; // Tránh chia cho 0
+            return logProbs.map(lp => lp / temperature);
+        }
+
+        // Chuyển đổi log probabilities thành probabilities (softmax)
+        function softmax(logProbs) {
+            const maxLogProb = Math.max(...logProbs);
+            const exps = logProbs.map(lp => Math.exp(lp - maxLogProb));
+            const sumExps = exps.reduce((a, b) => a + b, 0);
+            return exps.map(e => e / sumExps);
+        }
+
+        // Lọc theo Top-P
+        function applyTopP(dist, topP) {
+            const sortedDist = [...dist].sort((a, b) => b.prob - a.prob);
+            let cumulativeProb = 0;
+            const candidates = [];
+            const eliminated = [];
+
+            for (const item of sortedDist) {
+                if (cumulativeProb < topP) {
+                    candidates.push(item);
+                    cumulativeProb += item.prob;
+                } else {
+                    eliminated.push(item);
+                }
+            }
+            return { candidates, eliminated };
+        }
+        
+        // Chọn một từ từ danh sách ứng viên dựa trên xác suất của chúng
+        function sampleFromCandidates(candidates) {
+            const totalProb = candidates.reduce((sum, item) => sum + item.prob, 0);
+            const normalizedCandidates = candidates.map(item => ({ ...item, prob: item.prob / totalProb }));
+
+            let random = Math.random();
+            let chosenWord = null;
+
+            for (const candidate of normalizedCandidates) {
+                if (random < candidate.prob) {
+                    chosenWord = candidate.word;
+                    break;
+                }
+                random -= candidate.prob;
+            }
+            // Fallback in case of floating point inaccuracies
+            if (!chosenWord) {
+                chosenWord = normalizedCandidates[0].word;
+            }
+            return chosenWord;
+        }
+
+        // --- LOGIC TRỰC QUAN HÓA (D3.js) ---
+
+        const svgContainer = d3.select("#chart");
+        const margin = { top: 20, right: 20, bottom: 100, left: 50 };
+        let width, height;
+        let svg, x, y;
+
+        function setupChart() {
+            const containerRect = svgContainer.node().getBoundingClientRect();
+            width = containerRect.width - margin.left - margin.right;
+            height = containerRect.height - margin.top - margin.bottom;
+
+            svgContainer.selectAll("*").remove(); // Xóa chart cũ
+
+            svg = svgContainer.append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            x = d3.scaleBand().range([0, width]).padding(0.2);
+            y = d3.scaleLinear().range([height, 0]);
+
+            svg.append("g")
+                .attr("class", "x-axis")
+                .attr("transform", `translate(0,${height})`);
+            
+            svg.append("g")
+                .attr("class", "y-axis");
+
+            svg.select(".y-axis").append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -margin.left + 15)
+                .attr("x", -height / 2)
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .attr("class", "chart-text")
+                .text("Xác suất");
+        }
+
+        function updateChart(data, { candidates, eliminated }, selectedWord = null) {
+            if (!svg) setupChart();
+
+            // Sắp xếp dữ liệu để hiển thị đẹp hơn
+            const sortedData = [...data].sort((a,b) => b.prob - a.prob);
+
+            x.domain(sortedData.map(d => d.word));
+            y.domain([0, d3.max(sortedData, d => d.prob)]);
+            
+            const candidateWords = new Set(candidates.map(c => c.word));
+            const eliminatedWords = new Set(eliminated.map(e => e.word));
+
+            svg.select(".x-axis")
+                .transition().duration(300)
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("class", "chart-text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            svg.select(".y-axis")
+                .transition().duration(300)
+                .call(d3.axisLeft(y).ticks(5, "%"));
+
+            const bars = svg.selectAll(".bar").data(sortedData, d => d.word);
+
+            bars.exit().remove();
+            
+            bars.enter()
+                .append("rect")
+                .attr("class", "bar")
+                .attr("x", d => x(d.word))
+                .attr("y", d => y(0))
+                .attr("width", x.bandwidth())
+                .attr("height", 0)
+                .merge(bars)
+                .transition().duration(500)
+                .attr("x", d => x(d.word))
+                .attr("width", x.bandwidth())
+                .attr("y", d => y(d.prob))
+                .attr("height", d => height - y(d.prob))
+                .attr("class", d => {
+                    if (d.word === selectedWord) return "bar bar-selected";
+                    if (candidateWords.has(d.word)) return "bar bar-candidate";
+                    if (eliminatedWords.has(d.word)) return "bar bar-eliminated";
+                    return "bar bar-default";
+                });
+        }
+        
+        window.addEventListener('resize', () => {
+             if (simulationRunning) {
+                setupChart();
+                runSimulation();
+             }
+        });
+
+
+        // --- MAIN LOGIC ---
+        
+        function runSimulation(selectNewWord = false, onComplete = () => {}) {
+            if (!simulationRunning && selectNewWord) {
+                simulationRunning = true;
+            }
+            if(!simulationRunning) return;
+            
+            statusEl.textContent = 'Đang tính toán lại phân bổ xác suất...';
+            
+            const temp = parseFloat(tempSlider.value);
+            const topP = parseFloat(topPSlider.value);
+            
+            // 1. Áp dụng Temperature
+            const tempLogProbs = applyTemperature(baseLogProbs, temp);
+
+            // 2. Chuyển thành xác suất (Softmax)
+            const probs = softmax(tempLogProbs);
+            
+            currentDistribution = vocabulary.map((word, i) => ({ word, prob: probs[i] }));
+            
+            // 3. Lọc theo Top-P
+            const { candidates, eliminated } = applyTopP(currentDistribution, topP);
+            
+            let selectedWord = null;
+            if (selectNewWord) {
+                // 4. Chọn một từ
+                selectedWord = sampleFromCandidates(candidates);
+                
+                const promptText = promptInput.value;
+                const newText = `${promptText} ${selectedWord}`;
+                generatedText.textContent = newText;
+                promptInput.value = newText;
+            }
+            
+            // 5. Cập nhật biểu đồ
+            updateChart(currentDistribution, { candidates, eliminated }, selectedWord);
+
+            if(selectNewWord) {
+                 statusEl.innerHTML = `Đã chọn từ <strong class="text-green-400">'${selectedWord}'</strong>. Tổng xác suất của các từ ứng viên là <strong class="text-cyan-400">${(candidates.reduce((s,c) => s+c.prob, 0) * 100).toFixed(1)}%</strong>.`;
+            } else {
+                 statusEl.innerHTML = `Đã cập nhật biểu đồ. Tổng xác suất của các từ ứng viên là <strong class="text-cyan-400">${(candidates.reduce((s,c) => s+c.prob, 0) * 100).toFixed(1)}%</strong>.`;
+            }
+
+            onComplete();
+        }
+
+        // --- EVENT LISTENERS ---
+        tempSlider.addEventListener('input', () => {
+            tempValue.textContent = parseFloat(tempSlider.value).toFixed(2);
+             if (simulationRunning) runSimulation(false);
+        });
+        
+        topPSlider.addEventListener('input', () => {
+            topPValue.textContent = parseFloat(topPSlider.value).toFixed(2);
+             if (simulationRunning) runSimulation(false);
+        });
+        
+        generateBtn.addEventListener('click', () => {
+            generateBtn.disabled = true;
+            generateBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            if (!simulationRunning) {
+                setupChart();
+            }
+            runSimulation(true, () => {
+                 setTimeout(() => {
+                    generateBtn.disabled = false;
+                    generateBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                 }, 500); // Debounce
+            });
+        });
+        
+        // Initial state
+        tempValue.textContent = parseFloat(tempSlider.value).toFixed(2);
+        topPValue.textContent = parseFloat(topPSlider.value).toFixed(2);
+        generatedText.textContent = promptInput.value;
+
+    </script>
+</body>
+</html>
