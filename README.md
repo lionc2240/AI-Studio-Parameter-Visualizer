@@ -2,7 +2,7 @@
 
 This project is an interactive web application designed to help users understand the effects of two key parameters in AI language models: **Temperature** and **Top-P (Nucleus Sampling)**. By adjusting these parameters and generating text, users can visually see how the probability distribution of the next word changes, providing an intuitive grasp of these fundamental concepts.
 
-![Netlify Status](https://app.netlify.com/projects/aiparameter/deploys/68cb79534209770008371b3f)
+![Netlify Status](https://api.netlify.com/api/v1/badges/8a80a9d2-2213-42ba-b4f4-942df2e98505/deploy-status)
 
 **[➡️ View Live Demo](https://aiparameter.netlify.app/)**
 
