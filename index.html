@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trực quan hóa Temperature & Top-P</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Link to the external CSS file -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-900 text-slate-200 antialiased">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-400">Trực quan hóa Tham số AI</h1>
+            <p class="mt-2 text-slate-400">Khám phá cách <span class="font-semibold text-blue-300">Temperature</span> và <span class="font-semibold text-green-300">Top-P</span> định hình câu trả lời của AI.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Cột điều khiển và giải thích -->
+            <div class="lg:col-span-1 flex flex-col gap-8">
+                <!-- Bảng điều khiển -->
+                <div class="bg-gray-800 p-6 rounded-2xl shadow-lg border border-slate-700">
+                    <h2 class="text-2xl font-semibold mb-6 text-slate-100 border-b border-slate-600 pb-3">Bảng điều khiển</h2>
+
+                    <!-- Temperature Slider -->
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="temperature" class="font-medium text-blue-300">Temperature</label>
+                            <span id="temperatureValue" class="text-lg font-mono bg-blue-900/50 text-blue-200 px-3 py-1 rounded-md">1.0</span>
+                        </div>
+                        <input type="range" id="temperature" min="0.01" max="2.0" step="0.01" value="1.0" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                        <div class="flex justify-between text-xs text-slate-400 mt-1">
+                            <span>Ngẫu nhiên thấp</span>
+                            <span>Ngẫu nhiên cao</span>
+                        </div>
+                    </div>
+
+                    <!-- Top-P Slider -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="topP" class="font-medium text-green-300">Top-P</label>
+                            <span id="topPValue" class="text-lg font-mono bg-green-900/50 text-green-200 px-3 py-1 rounded-md">0.95</span>
+                        </div>
+                        <input type="range" id="topP" min="0.01" max="1.0" step="0.01" value="0.95" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                        <div class="flex justify-between text-xs text-slate-400 mt-1">
+                            <span>Lựa chọn chặt</span>
+                            <span>Lựa chọn rộng</span>
+                        </div>
+                    </div>
+
+                    <!-- Prompt Input -->
+                    <div class="mt-8">
+                        <label for="promptInput" class="block font-medium mb-2 text-slate-300">Nhập câu lệnh của bạn</label>
+                         <div class="flex gap-2">
+                            <input type="text" id="promptInput" value="Hôm nay tôi" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                            <button id="generateBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+                                Tạo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Giải thích -->
+                <div class="bg-gray-800 p-6 rounded-2xl shadow-lg border border-slate-700">
+                    <h3 class="text-xl font-semibold mb-4 text-slate-100">Cách hoạt động</h3>
+                    <p class="text-slate-400 mb-4"><strong class="text-blue-300">Temperature</strong> điều chỉnh sự "sáng tạo" của mô hình. Giá trị thấp làm cho các từ có xác suất cao được ưu tiên tuyệt đối (kết quả dễ đoán). Giá trị cao làm phẳng sự phân bổ xác suất, cho phép các từ hiếm hơn có cơ hội được chọn (kết quả ngẫu nhiên hơn).</p>
+                    <p class="text-slate-400"><strong class="text-green-300">Top-P</strong> (Nucleus Sampling) lọc ra các từ có xác suất thấp. Mô hình chỉ xem xét nhóm từ nhỏ nhất có tổng xác suất tích lũy lớn hơn giá trị Top-P. Điều này giúp loại bỏ các lựa chọn không liên quan, đặc biệt khi Temperature cao.</p>
+                </div>
+            </div>
+
+            <!-- Cột trực quan hóa -->
+            <div class="lg:col-span-2 bg-gray-800 p-4 md:p-6 rounded-2xl shadow-lg border border-slate-700 min-h-[400px]">
+                <h2 class="text-2xl font-semibold mb-2 text-slate-100">Phân bổ xác suất từ tiếp theo</h2>
+                <div id="status" class="h-8 text-slate-400 mb-2">Nhấn "Tạo" để bắt đầu.</div>
+                <div id="chart" class="w-full h-[500px] overflow-x-auto"></div>
+                <div class="mt-4 p-4 bg-slate-900/50 rounded-lg text-center">
+                    <h3 class="text-lg text-slate-300">Câu được tạo ra:</h3>
+                    <p id="generatedText" class="text-xl font-semibold text-blue-300 min-h-[28px] mt-2"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link to the external JavaScript file -->
+    <script src="script.js"></script>
+</body>
+</html>

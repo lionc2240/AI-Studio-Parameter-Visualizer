@@ -1,0 +1,32 @@
+body {
+    font-family: 'Inter', sans-serif;
+}
+.slider-thumb::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #3b82f6;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+.slider-thumb::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #3b82f6;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+.bar-candidate { fill: #0ea5e9; } /* cyan-500 */
+.bar-default { fill: #60a5fa; } /* blue-400 */
+.bar-eliminated { fill: #475569; opacity: 0.5; } /* slate-600 */
+.bar-selected { fill: #22c55e; } /* green-500 */
+.chart-text {
+    font-size: 12px;
+    fill: #e2e8f0; /* slate-200 */
+}
+.domain, .tick line {
+   stroke: #475569; /* slate-600 */
+}
