@@ -1,8 +1,8 @@
-# Interactive AI Parameter Visualizer
+# Interactive Google AI Studio Parameter Visualizer
 
 This project is an interactive web application designed to help users understand the effects of two key parameters in AI language models: **Temperature** and **Top-P (Nucleus Sampling)**. By adjusting these parameters and generating text, users can visually see how the probability distribution of the next word changes, providing an intuitive grasp of these fundamental concepts.
 
-[![Netlify Status](https://app.netlify.com/projects/aiparameter/deploys/68cb79534209770008371b3f)
+![Netlify Status](https://app.netlify.com/projects/aiparameter/deploys/68cb79534209770008371b3f)
 
 **[➡️ View Live Demo](https://aiparameter.netlify.app/)**
 
